@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8" />
+    <title>PDF.js Example</title>
+    <style>
+        #pdfViewerContainer {
+            width: 100%;
+            height: 100vh; /* Occupy full viewport height */
+            position: relative;
+        }
+        #pdfViewer {
+            width: 100%;
+            height: 100%;
+            border: none;
+            visibility: hidden; /* Hide the iframe initially */
+        }
+        #spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="pdfViewerContainer">
+        <iframe id="pdfViewer" src="/pdfhighlighter/viewer.html?file=example2.pdf" width="100%" height="100%" style="border: none;"></iframe>
+        <div id="spinner">Loading...</div>
+    </div>
+
+<script>
+
+function showSelectedPage(selectedPageNumber) {
+    const iframeDocument = document.getElementById('pdfViewer').contentWindow.document;
+    const pages = iframeDocument.getElementsByClassName('page');
+
+    let maxHeight = 0;
+
+    for (let i = 0; i < pages.length; i++) {
+        const pageNumber = parseInt(pages[i].getAttribute('data-page-number'));
+        const pageHeight = pages[i].offsetHeight;
+
+        if (!isNaN(pageNumber) && pageNumber !== selectedPageNumber) {
+            pages[i].style.display = 'none'; // Hide the page if it's not the selected page
+        } else {
+            pages[i].style.display = 'block'; // Show the selected page
+            maxHeight = Math.max(maxHeight, pageHeight);
+        }
+    }
+
+    // Set the height of the iframe to fit the visible page
+    document.getElementById('pdfViewer').style.height = maxHeight + 'px';
+}
+
+function searchAndHighlightOnPage(pageNumber, searchText) {
+    const iframeDocument = document.getElementById('pdfViewer').contentWindow;
+    iframeDocument.addEventListener('DOMContentLoaded', function() {
+        // Attach an event listener for the 'textlayerrendered' event
+        iframeDocument.PDFViewerApplication.eventBus.on('textlayerrendered', function() {
+            console.log("Text layers rendered");
+            // Dispatch a command to render a specific page
+            iframeDocument.PDFViewerApplication.eventBus.dispatch('find', {
+                caseSensitive: false,
+                findPrevious: undefined,
+                highlightAll: true,
+                phraseSearch: true,
+                query: searchText
+            });
+
+            // Call showSelectedPage after text layers are rendered
+            showSelectedPage(pageNumber);
+
+            // Show the iframe and hide the spinner
+            document.getElementById('pdfViewer').style.visibility = 'visible';
+            document.getElementById('spinner').style.display = 'none';
+        });
+    });
+}
+
+// Example usage:
+searchAndHighlightOnPage(1, "We present a trace-based compilation technique for dynamic languages that reconciles speed of compilation with excellent per- formance of the generated machine code. Our system uses a mixed- mode execution approach: the system starts running JavaScript in a fast-starting bytecode interpreter. As the program runs, the system identifies hot (frequently executed) bytecode sequences, records them, and compiles them to fast native code. We call such a se- quence of instructions a trace");
+
+</script>
+</body>
+</html>
+

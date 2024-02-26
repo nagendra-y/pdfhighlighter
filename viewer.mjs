@@ -4518,7 +4518,7 @@ const defaultOptions = {
 };
 {
   defaultOptions.defaultUrl = {
-    value: "compressed.tracemonkey-pldi-09.pdf",
+    value: "example2.pdf",
     kind: OptionKind.VIEWER
   };
   defaultOptions.sandboxBundleSrc = {
@@ -14679,7 +14679,7 @@ class ViewHistory {
   }
   async _writeToStorage() {
     const databaseStr = JSON.stringify(this.database);
-    localStorage.setItem("pdfjs.history", databaseStr);
+    //localStorage.setItem("pdfjs.history", databaseStr);
   }
   async _readFromStorage() {
     return localStorage.getItem("pdfjs.history");

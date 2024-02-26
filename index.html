@@ -4,57 +4,155 @@
     <meta charset="UTF-8" />
     <title>PDF.js Example</title>
     <style>
-        #pdfViewer {
+        #pdfViewerContainer {
             width: 100%;
             height: 100vh; /* Occupy full viewport height */
+            position: relative;
+        }
+        #pdfViewer {
+            width: 100%;
+            height: 100%;
             border: none;
+            visibility: hidden; /* Hide the iframe initially */
+        }
+        #spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: block;
         }
     </style>
 </head>
 
 <body>
-    <iframe id="pdfViewer" src="/pdfhighlighter/viewer.html?file=example.pdf" width="100%" height="100%" style="border: none;"></iframe>
+    <!-- Links to select PDF -->
+    <a class="pdfLink" href="#" data-index="0">Output 1</a>
+    <a class="pdfLink" href="#" data-index="1">Output 2</a>
+    <div id="pdfViewerContainer">
+        <iframe id="pdfViewer" src="" width="100%" height="100%" style="border: none;"></iframe>
+        <div id="spinner">Loading...</div>
+    </div>
 
+
+<script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
 <script>
+
+    const pdfData = [
+        {
+            "filename": "example2.pdf",
+            "pageNumber": 1,
+            "highlightText": "We present a trace-based compilation technique for dynamic languages that reconciles speed of compilation with excellent per- formance of the generated machine code. Our system uses a mixed- mode execution approach: the system starts running JavaScript in a fast-starting bytecode interpreter. As the program runs, the system identifies hot (frequently executed) bytecode sequences, records them, and compiles them to fast native code. We call such a se- quence of instructions a trace"
+        },
+        {
+            "filename": "example.pdf",
+            "pageNumber": 7,
+            "highlightText": "To find out what it looks like in assembly we compile it, and start up gdb. Remember to use the s tatic flag. Otherwise the actual code for the execve system call will not be included. Instead there will be a reference to dynamic C library that would normally would be linked in at load time"
+        },
+    ];
 
 function showSelectedPage(selectedPageNumber) {
     const iframeDocument = document.getElementById('pdfViewer').contentWindow.document;
     const pages = iframeDocument.getElementsByClassName('page');
 
-    for (let i = pages.length - 1; i >= 0; i--) {
-        const pageNumber = pages[i].getAttribute('data-page-number');
+    let maxHeight = 0;
 
-        if (pageNumber != selectedPageNumber) {
-            pages[i].remove();
+    for (let i = 0; i < pages.length; i++) {
+        const pageNumber = parseInt(pages[i].getAttribute('data-page-number'));
+        const pageHeight = pages[i].offsetHeight;
+
+        if (!isNaN(pageNumber) && pageNumber !== selectedPageNumber) {
+            pages[i].style.display = 'none'; // Hide the page if it's not the selected page
+        } else {
+            pages[i].style.display = 'block'; // Show the selected page
+            maxHeight = Math.max(maxHeight, pageHeight);
         }
     }
-}
 
+    // Set the height of the iframe to fit the visible page
+    document.getElementById('pdfViewer').style.height = maxHeight + 'px';
+}
 
 function searchAndHighlightOnPage(pageNumber, searchText) {
-    const iframeDocument = document.getElementById('pdfViewer').contentWindow;
-    iframeDocument.addEventListener('DOMContentLoaded', function() {
-        // Attach an event listener for the 'pagesloaded' event
-        iframeDocument.PDFViewerApplication.eventBus.on('textlayerrendered', function() {
-            console.log("heleelkfj");
-            // Dispatch a command to render a specific page
-            iframeDocument.PDFViewerApplication.eventBus.dispatch('find', {
-                caseSensitive: false,
-                findPrevious: undefined,
-                highlightAll: true,
-                phraseSearch: true,
-                query: searchText
-            });
+    console.log(pageNumber, searchText);
+    const iframe = document.getElementById('pdfViewer');
+    iframe.onload = function() {
+        console.log("iframe content loaded");
+        const iframeDocument = iframe.contentWindow;
+        // Attach an event listener for the 'textlayerrendered' event
+        
+        iframeDocument.PDFViewerApplication.eventBus.on('pagerendered', function(event) {
+            iframeDocument.PDFViewerApplication.page = pageNumber; 
+            console.log("Page rendered: ", event);
+            // Call showSelectedPage after text layers are rendered
+            if(event.pageNumber == pageNumber){
+                showSelectedPage(pageNumber);
+                // Dispatch a command to render a specific page
+                iframeDocument.PDFViewerApplication.eventBus.dispatch('find', {
+                    caseSensitive: false,
+                    findPrevious: undefined,
+                    highlightAll: true,
+                    phraseSearch: true,
+                    query: searchText
+                });
+            }
 
-            // Call showSelectedPage after pages are loaded
-            showSelectedPage(pageNumber);
+
+            // Show the iframe and hide the spinner
+            iframe.style.visibility = 'visible';
+            document.getElementById('spinner').style.display = 'none';
         });
-    });
+    };
 }
 
-// Example usage:
-searchAndHighlightOnPage(2, 'A stack is an abstract data type frequently used in computer science. A stack of objects has the property that the last object placed on the stack will be the first object removed. This property is commonly referred to as last in, first out queue, or a LIFO. Several operations are defined on stacks. Two of the most important are PUSH and POP. PUSH adds an element at the top of the stack. POP, in contrast, reduces the stack size by one by removing the last element at the top of the stack');
+// Function to load PDF file in iframe
+function loadPdf(pdfName) {
+    const pdfViewer = document.getElementById('pdfViewer');
+    const spinner = document.getElementById('spinner');
 
+    // Show spinner while loading
+    spinner.style.display = 'block';
+    pdfViewer.style.visibility = 'hidden';
+
+    // Set src attribute of the iframe to load PDF
+    pdfViewer.src = `/pdfhighlighter/viewer.html?file=${pdfName}`;
+
+    // Hide spinner when iframe content is loaded
+    pdfViewer.onload = function() {
+        spinner.style.display = 'none';
+        pdfViewer.style.visibility = 'visible';
+    };
+}
+
+function removeHyphenFollowedBySpace(inputString) {
+    // Replace hyphen followed by a space with just a space
+    return inputString.replace(/-\s/g, '');
+}
+
+function loadFrame(index){
+        // Load PDF based on the selected index
+        const selectedPdf = pdfData[index];
+        loadPdf(selectedPdf.filename);
+
+        var ht = removeHyphenFollowedBySpace(selectedPdf.highlightText);
+        // Example usage: Search and highlight on page
+        searchAndHighlightOnPage(selectedPdf.pageNumber, ht);
+}
+
+
+// Event listener for link clicks
+document.querySelectorAll('.pdfLink').forEach(function(link) {
+    link.addEventListener('click', function(event) {
+        event.preventDefault(); // Prevent default link behavior
+
+        // Get PDF index from data attribute
+        const index = parseInt(link.getAttribute('data-index'));
+        loadFrame(index);
+    });
+});
+
+loadFrame(0);
 </script>
 </body>
+</html>
 
