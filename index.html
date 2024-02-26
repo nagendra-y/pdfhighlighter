@@ -35,7 +35,7 @@ function searchAndHighlightOnPage(pageNumber, searchText) {
     const iframeDocument = document.getElementById('pdfViewer').contentWindow;
     iframeDocument.addEventListener('DOMContentLoaded', function() {
         // Attach an event listener for the 'pagesloaded' event
-        iframeDocument.PDFViewerApplication.eventBus.on('pagesloaded', function() {
+        iframeDocument.PDFViewerApplication.eventBus.on('textlayerrendered', function() {
             console.log("heleelkfj");
             // Dispatch a command to render a specific page
             iframeDocument.PDFViewerApplication.eventBus.dispatch('find', {
