@@ -34,19 +34,21 @@ function showSelectedPage(selectedPageNumber) {
 function searchAndHighlightOnPage(pageNumber, searchText) {
     const iframeDocument = document.getElementById('pdfViewer').contentWindow;
     iframeDocument.addEventListener('DOMContentLoaded', function() {
-        // Dispatch a command to render a specific page
-        // Wait for the page to be rendered before searching and highlighting
-        setTimeout(function() {
+        // Attach an event listener for the 'pagesloaded' event
+        iframeDocument.PDFViewerApplication.eventBus.on('pagesloaded', function() {
+            console.log("heleelkfj");
+            // Dispatch a command to render a specific page
             iframeDocument.PDFViewerApplication.eventBus.dispatch('find', {
-caseSensitive: false,
-    findPrevious: undefined,
-        highlightAll: true,
-        phraseSearch: true,
-        query: searchText
+                caseSensitive: false,
+                findPrevious: undefined,
+                highlightAll: true,
+                phraseSearch: true,
+                query: searchText
+            });
+
+            // Call showSelectedPage after pages are loaded
+            showSelectedPage(pageNumber);
         });
-        
-           showSelectedPage(pageNumber);
-        }, 1000); // Adjust the delay as needed to ensure the page is rendered before searching
     });
 }
 
