@@ -13,7 +13,7 @@
 </head>
 
 <body>
-    <iframe id="pdfViewer" src="/viewer.html?file=example.pdf" width="100%" height="100%" style="border: none;"></iframe>
+    <iframe id="pdfViewer" src="/pdfhighlighter/viewer.html?file=example.pdf" width="100%" height="100%" style="border: none;"></iframe>
 
 <script>
 
