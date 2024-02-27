@@ -27,8 +27,9 @@
 
 <body>
     <!-- Links to select PDF -->
-    <a class="pdfLink" href="#" data-index="0">Output 1</a>
-    <a class="pdfLink" href="#" data-index="1">Output 2</a>
+    <a class="pdfLink" href="#" data-index="0">Image Highlight</a>
+    <a class="pdfLink" href="#" data-index="1">Output 1</a>
+    <a class="pdfLink" href="#" data-index="2">Output 2</a>
     <div id="pdfViewerContainer">
         <iframe id="pdfViewer" src="" width="100%" height="100%" style="border: none;"></iframe>
         <div id="spinner">Loading...</div>
@@ -39,6 +40,11 @@
 <script>
 
     const pdfData = [
+        {
+            "filename": "example2.pdf",
+            "pageNumber": 2,
+            "highlightText": "Interpret Bytecodes"
+        },
         {
             "filename": "example2.pdf",
             "pageNumber": 1,
